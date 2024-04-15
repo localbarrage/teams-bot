@@ -4,31 +4,27 @@
 import sys
 import traceback
 from datetime import datetime
-from http import HTTPStatus
 
 from aiohttp import web
 from aiohttp.web import Request, Response, json_response
 from botbuilder.core import (
-    ConversationState,
-    MemoryStorage,
+    BotFrameworkAdapterSettings,
     TurnContext,
-    UserState,
+    BotFrameworkAdapter,
 )
 from botbuilder.core.integration import aiohttp_error_middleware
-from botbuilder.integration.aiohttp import CloudAdapter, ConfigurationBotFrameworkAuthentication
 from botbuilder.schema import Activity, ActivityTypes
 
-from bots import DialogAndWelcomeBot
-
-# Create the loop and Flask app
+from bot import MyBot
 from config import DefaultConfig
-from dialogs import MainDialog
 
 CONFIG = DefaultConfig()
 
 # Create adapter.
 # See https://aka.ms/about-bot-adapter to learn more about how bots work.
-ADAPTER = CloudAdapter(ConfigurationBotFrameworkAuthentication(CONFIG))
+SETTINGS = BotFrameworkAdapterSettings(CONFIG.APP_ID, CONFIG.APP_PASSWORD)
+ADAPTER = BotFrameworkAdapter(SETTINGS)
+
 
 # Catch-all for errors.
 async def on_error(context: TurnContext, error: Exception):
@@ -57,39 +53,28 @@ async def on_error(context: TurnContext, error: Exception):
         # Send a trace activity, which will be displayed in Bot Framework Emulator
         await context.send_activity(trace_activity)
 
-    # Clear out state
-    await CONVERSATION_STATE.delete(context)
 
-
-# Set the error handler on the Adapter.
-# In this case, we want an unbound function, so MethodType is not needed.
 ADAPTER.on_turn_error = on_error
 
-# Create MemoryStorage and state
-MEMORY = MemoryStorage()
-USER_STATE = UserState(MEMORY)
-CONVERSATION_STATE = ConversationState(MEMORY)
-
-# Create Dialog and Bot
-DIALOG = MainDialog(USER_STATE)
-BOT = DialogAndWelcomeBot(CONVERSATION_STATE, USER_STATE, DIALOG)
+# Create the Bot
+BOT = MyBot()
 
 
-# Listen for incoming requests on /api/messages.
+# Listen for incoming requests on /api/messages
 async def messages(req: Request) -> Response:
     # Main bot message handler.
     if "application/json" in req.headers["Content-Type"]:
         body = await req.json()
     else:
-        return Response(status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
+        return Response(status=415)
 
     activity = Activity().deserialize(body)
     auth_header = req.headers["Authorization"] if "Authorization" in req.headers else ""
 
-    response = await ADAPTER.process_activity(auth_header, activity, BOT.on_turn)
+    response = await ADAPTER.process_activity(activity, auth_header, BOT.on_turn)
     if response:
         return json_response(data=response.body, status=response.status)
-    return Response(status=HTTPStatus.OK)
+    return Response(status=201)
 
 
 APP = web.Application(middlewares=[aiohttp_error_middleware])
