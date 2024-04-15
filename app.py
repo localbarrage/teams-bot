@@ -59,7 +59,6 @@ ADAPTER.on_turn_error = on_error
 # Create the Bot
 BOT = MyBot()
 
-
 # Listen for incoming requests on /api/messages
 async def messages(req: Request) -> Response:
     # Main bot message handler.
