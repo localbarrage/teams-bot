@@ -1,1 +1,4 @@
 botbuilder-integration-aiohttp>=4.14.0
+langchain_community
+langchain
+langchain_openai

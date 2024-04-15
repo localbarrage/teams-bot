@@ -1,20 +1,13 @@
 import logging
 import os
-import shlex
 import requests
-from dotenv import load_dotenv
-#from openai import OpenAI
-#import bittensor as bt
-from typing import List, Optional
 import asyncio 
-import pprint
 import json
 import re
 from datetime import date
 from langchain_community.utilities import GoogleSerperAPIWrapper
 
 
-load_dotenv()
 os.environ["SERPER_API_KEY"] = "2cc36227196e0737cee7e369042275db14f184bc" # roguetensors
 
 logging.basicConfig(level=logging.DEBUG)
