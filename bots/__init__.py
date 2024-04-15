@@ -1,3 +1,7 @@
-from .teams_conversation_bot import TeamsConversationBot
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
 
-__all__ = ["TeamsConversationBot"]
+from .dialog_bot import DialogBot
+from .dialog_and_welcome_bot import DialogAndWelcomeBot
+
+__all__ = ["DialogBot", "DialogAndWelcomeBot"]
